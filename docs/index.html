@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="pl"><head><meta charset="UTF-8">
+<html lang="en"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Reolink · podglad wygladu</title>
+<title>Reolink · UI Preview</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
 <style>
@@ -281,7 +281,7 @@ main { padding: 30px; }
 .disk-info span { font-family: var(--mono); font-size: 15px; color: var(--text-mid); }
 .disk-info .disk-free { color: var(--text-dim); font-size: 13px; }
 
-/* ---------- powiekszanie podgladu wideo ---------- */
+/* ---------- video fullscreen toggle ---------- */
 .expand-btn {
   position: absolute; top: 10px; right: 10px; z-index: 3;
   width: 36px; height: 36px; border-radius: 10px; cursor: pointer;
@@ -309,11 +309,11 @@ main { padding: 30px; }
 <div class="scanlines"></div>
 <header class="topbar">
   <div class="brand"><span class="logo-dot"></span><h1>REOLINK<span class="thin">// BATTERY OPS</span></h1></div>
-  <div class="meta"><span class="pill">4 / 5 online</span><span class="updated">ostatni odczyt 01.06 14:32</span></div>
+  <div class="meta"><span class="pill">4 / 5 online</span><span class="updated">last reading 01.06 14:32</span></div>
 </header>
 <main>
   <section class="storage">
-    <div class="storage-head"><span class="dot-sq"></span>Pamiec huba</div>
+    <div class="storage-head"><span class="dot-sq"></span>Hub Storage</div>
     <div class="disks" id="disks"></div>
   </section>
   <div class="grid" id="grid"></div>
@@ -321,39 +321,39 @@ main { padding: 30px; }
 
 <div id="modal" class="modal hidden"><div class="modal-card">
   <button class="close" onclick="document.getElementById('modal').classList.add('hidden')">&#10005;</button>
-  <div class="modal-head"><h2>Brama wjazdowa</h2><span class="state-tag online">ONLINE</span></div>
+  <div class="modal-head"><h2>Front Gate</h2><span class="state-tag online">ONLINE</span></div>
   <div class="modal-body">
     <div class="left-col">
       <div class="snap-wrap"><div class="phv" style="position:absolute;inset:0"></div>
-        <div class="snap-fallback" style="background:transparent;color:#cfe0f5">&#9654; podglad wideo na zywo (FLV)</div>
+        <div class="snap-fallback" style="background:transparent;color:#cfe0f5">&#9654; live video preview (FLV)</div>
         <span class="live-badge" style="display:inline-flex">&#9679; LIVE</span>
-        <button class="expand-btn" title="Powieksz (pelny ekran)">&#10530;</button></div>
+        <button class="expand-btn" title="Expand (fullscreen)">&#10530;</button></div>
       <div class="stats">
-        <div class="stat"><label>Bateria</label><b>86 %</b></div>
-        <div class="stat"><label>Ladowanie</label><b style="color:#0ea5e9">&#9889; ladowanie</b></div>
-        <div class="stat"><label>Napiecie</label><b>4.05 V</b></div>
-        <div class="stat"><label>Temperatura</label><b>24 &deg;C</b></div>
-        <div class="stat"><label>Low power</label><b>nie</b></div>
+        <div class="stat"><label>Battery</label><b>86 %</b></div>
+        <div class="stat"><label>Charging</label><b style="color:#0ea5e9">&#9889; charging</b></div>
+        <div class="stat"><label>Voltage</label><b>4.05 V</b></div>
+        <div class="stat"><label>Temperature</label><b>24 &deg;C</b></div>
+        <div class="stat"><label>Low power</label><b>no</b></div>
         <div class="stat"><label>UID</label><b class="mono-sm">9527040012345678</b></div>
-        <div class="stat"><label>Kanal</label><b>CH0</b></div>
+        <div class="stat"><label>Channel</label><b>CH0</b></div>
       </div>
     </div>
     <div class="right-col">
-      <div class="chart-head"><span>Bateria i ladowanie</span>
+      <div class="chart-head"><span>Battery &amp; charging</span>
         <div class="range-buttons"><button>6h</button><button class="active">24h</button><button>72h</button><button>7d</button></div></div>
       <div class="chart-wrap"><svg viewBox="0 0 600 300" preserveAspectRatio="none" id="spark" style="width:100%;height:100%"></svg></div>
-      <p class="chart-note">Niebieskie pasy = okresy, w ktorych bateria byla ladowana.</p>
+      <p class="chart-note">Blue bands = periods when the camera was charging.</p>
     </div>
   </div>
 </div></div>
 
 <script>
 const cams=[
- {n:"Brama wjazdowa",ch:0,st:"online",p:86,charge:true,img:1},
- {n:"Garaz",ch:1,st:"online",p:54,charge:false,img:1},
- {n:"Ogrod tyl",ch:2,st:"sleep",p:23,charge:false,img:1},
- {n:"Taras",ch:3,st:"offline",p:null,charge:false,img:0},
- {n:"Podjazd",ch:4,st:"online",p:91,charge:false,img:1},
+ {n:"Front Gate",ch:0,st:"online",p:86,charge:true,img:1},
+ {n:"Garage",ch:1,st:"online",p:54,charge:false,img:1},
+ {n:"Back Garden",ch:2,st:"sleep",p:23,charge:false,img:1},
+ {n:"Terrace",ch:3,st:"offline",p:null,charge:false,img:0},
+ {n:"Driveway",ch:4,st:"online",p:91,charge:false,img:1},
 ];
 const lbl={online:"ONLINE",sleep:"SLEEP",offline:"OFFLINE"};
 const bc=p=>p==null?"lo":p>=50?"hi":p>=20?"mid":"lo";
@@ -365,8 +365,8 @@ for(const c of cams){
  t.innerHTML=`<div class="thumb">${thumb}<span class="ch-chip">CH${c.ch}</span></div>
    <div class="tile-body"><div class="tile-head"><span class="dot ${c.st}"></span><span class="tile-name">${c.n}</span></div>`+
    (c.p!=null?`<div class="batt-big">${c.p}<span class="unit">%</span></div><div class="bar"><span class="${bc(c.p)}" style="width:${c.p}%"></span></div>`
-             :`<div class="batt-big na">— brak danych —</div><div class="bar"><span class="lo" style="width:0%"></span></div>`)+
-   `<div class="tile-foot"><span class="state-mini">${lbl[c.st]}</span><span>${c.charge?'<span class="charging">&#9889; laduje</span>':''}</span></div></div>`;
+             :`<div class="batt-big na">— no data —</div><div class="bar"><span class="lo" style="width:0%"></span></div>`)+
+   `<div class="tile-foot"><span class="state-mini">${lbl[c.st]}</span><span>${c.charge?'<span class="charging">&#9889; charging</span>':''}</span></div></div>`;
  g.appendChild(t);
 }
 const disks=[{number:17,cap:60341,free:34279},{number:0,cap:120000,free:30000}];
@@ -374,9 +374,9 @@ function donut(pct){const R=52,C=2*Math.PI*R,off=C*(1-pct/100);
  const col=pct>=90?'#e11d48':pct>=70?'#ea9a0c':'#22c55e';
  return `<svg viewBox="0 0 130 130" class="donut"><circle cx="65" cy="65" r="${R}" fill="none" stroke="#e7ecf4" stroke-width="14"/>
  <circle cx="65" cy="65" r="${R}" fill="none" stroke="${col}" stroke-width="14" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 65 65)"/>
- <text x="65" y="61" text-anchor="middle" class="donut-pct">${pct}%</text><text x="65" y="80" text-anchor="middle" class="donut-sub">zajete</text></svg>`;}
+ <text x="65" y="61" text-anchor="middle" class="donut-pct">${pct}%</text><text x="65" y="80" text-anchor="middle" class="donut-sub">used</text></svg>`;}
 document.getElementById("disks").innerHTML=disks.map(d=>{const used=d.cap-d.free,pct=Math.round(used/d.cap*1000)/10;
- return `<div class="disk">${donut(pct)}<div class="disk-info"><b>Dysk ${d.number}</b><span>${(used/1024).toFixed(1)} / ${(d.cap/1024).toFixed(1)} GB</span><span class="disk-free">${(d.free/1024).toFixed(1)} GB wolne</span></div></div>`;}).join("");
+ return `<div class="disk">${donut(pct)}<div class="disk-info"><b>Disk ${d.number}</b><span>${(used/1024).toFixed(1)} / ${(d.cap/1024).toFixed(1)} GB</span><span class="disk-free">${(d.free/1024).toFixed(1)} GB free</span></div></div>`;}).join("");
 const pts=[78,75,72,69,67,64,62,66,74,82,88,90,89,87,86],chg=[0,0,0,0,0,0,0,1,1,1,1,0,0,0,0];
 const W=600,H=300,n=pts.length,sx=W/(n-1),y=v=>H-(v/100)*H;let bands="",path="",i=0;
 while(i<n){if(chg[i]){let j=i;while(j<n&&chg[j])j++;bands+=`<rect x="${i*sx}" y="0" width="${(j-1-i)*sx||4}" height="${H}" fill="rgba(14,165,233,0.12)"/>`;i=j;}else i++;}
