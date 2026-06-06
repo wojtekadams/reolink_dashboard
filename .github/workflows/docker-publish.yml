@@ -1,9 +1,11 @@
 name: Build & publish Docker image
 
 on:
-  push:
-    branches:
-      - main
+  # Trigger only when a release is published via the GitHub UI or API.
+  # Draft and pre-release events are ignored – the image is built only
+  # when you click "Publish release" (or mark a pre-release as full release).
+  release:
+    types: [published]
   # Allow manual trigger from the Actions tab (useful for a forced rebuild
   # without a code change, e.g. after a base-image security update).
   workflow_dispatch:
@@ -27,12 +29,19 @@ jobs:
 
       # ── 2. Compute CalVer tag ─────────────────────────────────────────────
       # Format: YYYY.MM.DD  e.g. 2026.06.07
-      # If two builds happen on the same day, Docker layers are cached and the
-      # image is identical – both pushes are idempotent (same tag, same digest).
+      # When triggered by a release event, github.event.release.tag_name holds
+      # the release tag (e.g. "2026.06.07"). We use that directly so the Docker
+      # tag always matches the GitHub release tag – no mismatch possible.
+      # On a manual workflow_dispatch the date is used as a fallback.
       - name: Set CalVer tag
         id: calver
         run: |
-          echo "tag=$(date -u +'%Y.%m.%d')" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event_name }}" = "release" ]; then
+            # Strip a leading "v" if present (e.g. v2026.06.07 → 2026.06.07).
+            echo "tag=$(echo '${{ github.event.release.tag_name }}' | sed 's/^v//')" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=$(date -u +'%Y.%m.%d')" >> "$GITHUB_OUTPUT"
+          fi
 
       # ── 3. Set up QEMU (for multi-arch builds) ────────────────────────────
       # Builds linux/amd64 and linux/arm64 in one shot.
