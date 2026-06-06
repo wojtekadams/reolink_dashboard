@@ -17,10 +17,9 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    # Required for GITHUB_TOKEN to be able to push to ghcr.io.
     permissions:
-      contents: read
-      packages: write
+      contents: write   # needed to append Docker info to the release notes
+      packages: write   # needed to push to ghcr.io
 
     steps:
       # ── 1. Checkout ──────────────────────────────────────────────────────
@@ -85,6 +84,7 @@ jobs:
 
       # ── 7. Build and push ─────────────────────────────────────────────────
       - name: Build and push
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -97,8 +97,52 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # ── 8. Print image digest for traceability ────────────────────────────
-      - name: Image digest
+      # ── 8. Append Docker pull info to the GitHub release notes ────────────
+      # Runs only on real release events (not workflow_dispatch).
+      # gh release edit appends a Docker section below the existing notes
+      # so the original changelog is preserved.
+      - name: Append Docker info to release notes
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          DIGEST="${{ steps.build.outputs.digest }}"   # sha256:abc123…
+          SHORT_DIGEST="${DIGEST:7:12}"                # first 12 chars after "sha256:"
+
+          # Build the markdown block that will be appended to the release body.
+          DOCKER_SECTION=$(cat << MARKDOWN
+
+          ---
+
+          ### 🐳 Docker image
+
+          | Tag | Pull command |
+          |-----|-------------|
+          | exact (immutable) | \`docker pull ${{ env.IMAGE }}:${{ steps.semver.outputs.full }}\` |
+          | minor (latest patch) | \`docker pull ${{ env.IMAGE }}:${{ steps.semver.outputs.minor }}\` |
+          | latest | \`docker pull ${{ env.IMAGE }}:latest\` |
+          | digest (pinned) | \`docker pull ${{ env.IMAGE }}@${DIGEST}\` |
+
+          **docker-compose.yml**
+          \`\`\`yaml
+          services:
+            reolink-dashboard:
+              image: ${{ env.IMAGE }}:${{ steps.semver.outputs.full }}
+          \`\`\`
+
+          > Image digest: \`${DIGEST}\`  
+          > Platforms: \`linux/amd64\`, \`linux/arm64\`
+          MARKDOWN
+          )
+
+          # Fetch the existing release body and append the Docker section.
+          CURRENT_BODY="$(gh release view '${{ github.event.release.tag_name }}' --json body -q .body)"
+          NEW_BODY="${CURRENT_BODY}${DOCKER_SECTION}"
+
+          gh release edit '${{ github.event.release.tag_name }}' --notes "$NEW_BODY"
+
+      # ── 9. Print image digest to Actions summary ──────────────────────────
+      - name: Actions summary
         run: |
           echo "### Docker image published" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
@@ -107,4 +151,4 @@ jobs:
           echo "| exact   | \`${{ env.IMAGE }}:${{ steps.semver.outputs.full }}\` |" >> "$GITHUB_STEP_SUMMARY"
           echo "| minor   | \`${{ env.IMAGE }}:${{ steps.semver.outputs.minor }}\` |" >> "$GITHUB_STEP_SUMMARY"
           echo "| latest  | \`${{ env.IMAGE }}:latest\` |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| sha     | \`${{ env.IMAGE }}:sha-$(git rev-parse --short HEAD)\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| digest  | \`${{ steps.build.outputs.digest }}\` |" >> "$GITHUB_STEP_SUMMARY"
