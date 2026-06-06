@@ -41,7 +41,7 @@ docker compose up -d --build
 ```
 
 Dashboard → http://localhost:8112  
-Preview without a hub → open `preview.html` in your browser.
+Demo without a hub → open `https://wojtekadams.github.io/reolink_dashboard/` in your browser.
 
 ## Configuration
 
