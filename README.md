@@ -49,7 +49,7 @@ All settings are environment variables. Set them in `.env` or directly in `docke
 
 | Variable            | Default          | Description                                                                 |
 |---------------------|------------------|-----------------------------------------------------------------------------|
-| `NVR_IP`            | 192.168.236.124  | Hub / NVR IP address                                                        |
+| `NVR_IP`            | 192.168.1.100    | Hub / NVR IP address                                                        |
 | `NVR_USER`          | admin            | Hub username                                                                |
 | `NVR_PASS`          | *(empty)*        | Hub password                                                                |
 | `NVR_CHANNEL`       | auto             | `auto` = discover all cameras; integer = limit to first N channels (0-based)|

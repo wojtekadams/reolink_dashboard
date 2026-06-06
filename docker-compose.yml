@@ -31,7 +31,7 @@ services:
     # allowing everything to be overridden without editing this file.
     environment:
       # --- hub connection ---
-      NVR_IP: ${NVR_IP:-192.168.236.124}      # Reolink hub/NVR IP
+      NVR_IP: ${NVR_IP:-192.168.1.100}      # Reolink hub/NVR IP
       NVR_USER: ${NVR_USER:-admin}             # hub username
       NVR_PASS: ${NVR_PASS:-changeme}          # hub password (keep in .env!)
       # --- dashboard behaviour ---
