@@ -1,0 +1,47 @@
+# ============================================================================
+#  Reolink Battery Dashboard – docker compose
+#  Quick start:  cp .env.example .env  &&  docker compose up -d --build
+# ============================================================================
+
+services:
+  reolink-dashboard:
+    # Build the image from the Dockerfile in this directory.
+    build: .
+    # Tag given to the built image.
+    image: reolink-dashboard:latest
+    # Fixed container name (instead of a random one) – easier in logs and commands.
+    container_name: reolink-dashboard
+    # Auto-restart: comes back up after host reboot or crash,
+    # but NOT when stopped manually (docker compose stop).
+    restart: unless-stopped
+    # Port mapping  HOST:CONTAINER.
+    # Dashboard will be at http://localhost:8080 (change the left number to
+    # use a different host port, e.g. "9090:8080").
+    ports:
+      - 8112:8080
+    # --- "Network is unreachable" / container can't see the hub on LAN? ---
+    # If the HOST can ping the hub but the container can't, enable host
+    # networking: uncomment the line below AND comment out the "ports:" section
+    # above (port mapping is ignored with network_mode: host).
+    # network_mode: host
+
+    # Environment variables passed to the application.
+    # Syntax ${VAR:-default}: use the value from .env, fall back to the default
+    # if the variable is missing. Works out of the box without .env while still
+    # allowing everything to be overridden without editing this file.
+    environment:
+      # --- hub connection ---
+      NVR_IP: ${NVR_IP:-192.168.236.124}      # Reolink hub/NVR IP
+      NVR_USER: ${NVR_USER:-admin}             # hub username
+      NVR_PASS: ${NVR_PASS:-changeme}          # hub password (keep in .env!)
+      # --- dashboard behaviour ---
+      NVR_CHANNEL: ${NVR_CHANNEL:-auto}        # auto = discover all cameras; or a number = limit
+      POLL_INTERVAL: ${POLL_INTERVAL:-300}     # seconds between battery polls (wakes cameras)
+      HISTORY_HOURS: ${HISTORY_HOURS:-24}      # initial chart window (h)
+      RETENTION_DAYS: ${RETENTION_DAYS:-7}     # days of history to keep in the database
+      SNAPSHOT_TTL: ${SNAPSHOT_TTL:-300}       # seconds between snapshot refreshes (wakes camera)
+    # Persistent data (token cache + SQLite battery history).
+    # The bind-mount survives container restarts and rebuilds.
+    volumes:
+      - ./reolink_data:/appdata
+networks: {}
