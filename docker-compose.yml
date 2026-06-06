@@ -6,9 +6,9 @@
 services:
   reolink-dashboard:
     # Build the image from the Dockerfile in this directory.
-    build: .
+    #build: .
     # Tag given to the built image.
-    image: reolink-dashboard:latest
+    image: ghcr.io/wojtekadams/reolink-dashboard:latest
     # Fixed container name (instead of a random one) – easier in logs and commands.
     container_name: reolink-dashboard
     # Auto-restart: comes back up after host reboot or crash,

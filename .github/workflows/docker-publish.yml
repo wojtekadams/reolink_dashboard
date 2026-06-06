@@ -1,0 +1,93 @@
+name: Build & publish Docker image
+
+on:
+  push:
+    branches:
+      - main
+  # Allow manual trigger from the Actions tab (useful for a forced rebuild
+  # without a code change, e.g. after a base-image security update).
+  workflow_dispatch:
+
+env:
+  # ghcr.io/<owner>/<repo> – filled in automatically from repository context.
+  IMAGE: ghcr.io/${{ github.repository_owner }}/reolink-dashboard
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    # Required for GITHUB_TOKEN to be able to push to ghcr.io.
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      # ── 1. Checkout ──────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Compute CalVer tag ─────────────────────────────────────────────
+      # Format: YYYY.MM.DD  e.g. 2026.06.07
+      # If two builds happen on the same day, Docker layers are cached and the
+      # image is identical – both pushes are idempotent (same tag, same digest).
+      - name: Set CalVer tag
+        id: calver
+        run: |
+          echo "tag=$(date -u +'%Y.%m.%d')" >> "$GITHUB_OUTPUT"
+
+      # ── 3. Set up QEMU (for multi-arch builds) ────────────────────────────
+      # Builds linux/amd64 and linux/arm64 in one shot.
+      # Remove the platforms line in the build step if you only need amd64.
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      # ── 4. Set up Buildx ─────────────────────────────────────────────────
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # ── 5. Log in to ghcr.io ──────────────────────────────────────────────
+      # GITHUB_TOKEN is injected automatically – no manual secret needed.
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── 6. Extract metadata (labels, annotations) ─────────────────────────
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          # We manage tags ourselves (step 7), but metadata-action still
+          # produces useful OCI labels (source URL, revision, created date).
+          tags: |
+            type=raw,value=latest
+            type=raw,value=${{ steps.calver.outputs.tag }}
+            type=sha,prefix=sha-,format=short
+
+      # ── 7. Build and push ─────────────────────────────────────────────────
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          # linux/arm64 covers Raspberry Pi 4/5 and Apple Silicon (via Rosetta).
+          # Drop arm64 if your host is always x86.
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # Cache layers in the GitHub Actions cache to speed up subsequent builds.
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # ── 8. Print image digest for traceability ────────────────────────────
+      - name: Image digest
+        run: |
+          echo "### Docker image published" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Tag | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|-----|-------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| CalVer | \`${{ steps.calver.outputs.tag }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| latest | \`${{ env.IMAGE }}:latest\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| SHA | \`${{ env.IMAGE }}:sha-$(git rev-parse --short HEAD)\` |" >> "$GITHUB_STEP_SUMMARY"
