@@ -1,84 +1,78 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reolink · Battery Ops</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.7.3/dist/mpegts.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reolink · Battery Ops</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.7.3/dist/mpegts.js"></script>
 </head>
 <body>
-  <div class="scanlines"></div>
-
-  <header class="topbar">
-    <div class="brand">
-      <span class="logo-dot"></span>
-      <h1>REOLINK<span class="thin">// BATTERY OPS</span></h1>
-    </div>
-    <div class="meta">
-      <span id="online-count" class="pill">– / – online</span>
-      <span id="updated" class="updated">syncing…</span>
-    </div>
-  </header>
-
-  <main>
-    <section id="storage" class="storage hidden">
-      <div class="storage-head"><span class="dot-sq"></span>Pamięć huba</div>
-      <div id="disks" class="disks"></div>
-    </section>
-    <div id="grid" class="grid"></div>
-    <p id="empty" class="empty">Czekam na pierwszy odczyt z huba…</p>
-  </main>
-
-  <!-- DETAIL MODAL -->
-  <div id="modal" class="modal hidden">
-    <div class="modal-card">
-      <button id="modal-close" class="close">✕</button>
-      <div class="modal-head">
-        <h2 id="d-name">—</h2>
-        <span id="d-state" class="state-tag">—</span>
-      </div>
-
-      <div class="modal-body">
-        <div class="left-col">
-          <div class="snap-wrap">
-            <video id="d-video" muted autoplay playsinline></video>
-            <div id="snap-fallback" class="snap-fallback">łączenie z podglądem…</div>
-            <span class="live-badge" id="live-badge">● LIVE</span>
-            <button id="d-expand" class="expand-btn" title="Powiększ podgląd (pełny ekran)" aria-label="Powiększ podgląd">⤢</button>
-          </div>
-          <div class="stats">
-            <div class="stat"><label>Bateria</label><b id="d-battery">—</b></div>
-            <div class="stat"><label>Ładowanie</label><b id="d-charge">—</b></div>
-            <div class="stat"><label>Napięcie</label><b id="d-voltage">—</b></div>
-            <div class="stat"><label>Temperatura</label><b id="d-temp">—</b></div>
-            <div class="stat"><label>Low power</label><b id="d-lowpower">—</b></div>
-            <div class="stat"><label>UID</label><b id="d-uid" class="mono-sm">—</b></div>
-            <div class="stat"><label>Kanał</label><b id="d-channel">—</b></div>
-          </div>
-        </div>
-
-        <div class="right-col">
-          <div class="chart-head">
-            <span>Bateria i ładowanie</span>
-            <div class="range-buttons">
-              <button data-h="6">6h</button>
-              <button data-h="24" class="active">24h</button>
-              <button data-h="72">72h</button>
-              <button data-h="168">7d</button>
-            </div>
-          </div>
-          <div class="chart-wrap"><canvas id="d-chart"></canvas></div>
-          <p class="chart-note">Niebieskie pasy = okresy, w których bateria była ładowana.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script src="{{ url_for('static', filename='app.js') }}"></script>
+<div class="scanlines"></div>
+<header class="topbar">
+<div class="brand">
+<span class="logo-dot"></span>
+<h1>REOLINK<span class="thin">// BATTERY OPS</span></h1>
+</div>
+<div class="meta">
+<span id="online-count" class="pill">– / – online</span>
+<span id="updated" class="updated">syncing…</span>
+</div>
+</header>
+<main>
+<section id="storage" class="storage hidden">
+<div class="storage-head"><span class="dot-sq"></span>Hub Storage</div>
+<div id="disks" class="disks"></div>
+</section>
+<div id="grid" class="grid"></div>
+<p id="empty" class="empty">Waiting for the first reading from the hub…</p>
+</main>
+<!-- DETAIL MODAL -->
+<div id="modal" class="modal hidden">
+<div class="modal-card">
+<button id="modal-close" class="close">✕</button>
+<div class="modal-head">
+<h2 id="d-name">—</h2>
+<span id="d-state" class="state-tag">—</span>
+</div>
+<div class="modal-body">
+<div class="left-col">
+<div class="snap-wrap">
+<video id="d-video" muted autoplay playsinline></video>
+<div id="snap-fallback" class="snap-fallback">connecting to stream…</div>
+<span class="live-badge" id="live-badge">● LIVE</span>
+<button id="d-expand" class="expand-btn" title="Expand preview (fullscreen)" aria-label="Expand preview">⤢</button>
+</div>
+<div class="stats">
+<div class="stat"><label>Battery</label><b id="d-battery">—</b></div>
+<div class="stat"><label>Charging</label><b id="d-charge">—</b></div>
+<div class="stat"><label>Voltage</label><b id="d-voltage">—</b></div>
+<div class="stat"><label>Temperature</label><b id="d-temp">—</b></div>
+<div class="stat"><label>Low power</label><b id="d-lowpower">—</b></div>
+<div class="stat"><label>UID</label><b id="d-uid" class="mono-sm">—</b></div>
+<div class="stat"><label>Channel</label><b id="d-channel">—</b></div>
+</div>
+</div>
+<div class="right-col">
+<div class="chart-head">
+<span>Battery &amp; charging</span>
+<div class="range-buttons">
+<button data-h="6">6h</button>
+<button data-h="24" class="active">24h</button>
+<button data-h="72">72h</button>
+<button data-h="168">7d</button>
+</div>
+</div>
+<div class="chart-wrap"><canvas id="d-chart"></canvas></div>
+<p class="chart-note">Blue bands = periods when the camera was charging.</p>
+</div>
+</div>
+</div>
+</div>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>
