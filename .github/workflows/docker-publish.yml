@@ -27,25 +27,29 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ── 2. Compute CalVer tag ─────────────────────────────────────────────
-      # Format: YYYY.MM.DD  e.g. 2026.06.07
-      # When triggered by a release event, github.event.release.tag_name holds
-      # the release tag (e.g. "2026.06.07"). We use that directly so the Docker
-      # tag always matches the GitHub release tag – no mismatch possible.
-      # On a manual workflow_dispatch the date is used as a fallback.
-      - name: Set CalVer tag
-        id: calver
+      # ── 2. Resolve SemVer tag ─────────────────────────────────────────────
+      # Expected release tag format: 1.0.0  or  v1.0.0 (the leading "v" is
+      # stripped so Docker tags are always bare numbers: 1.0.0).
+      # Additionally we push a "major.minor" floating tag (e.g. 1.0) so users
+      # pinned to "1.0" get patch updates automatically.
+      # On a manual workflow_dispatch the step falls back to "dev".
+      - name: Resolve SemVer tag
+        id: semver
         run: |
           if [ "${{ github.event_name }}" = "release" ]; then
-            # Strip a leading "v" if present (e.g. v2026.06.07 → 2026.06.07).
-            echo "tag=$(echo '${{ github.event.release.tag_name }}' | sed 's/^v//')" >> "$GITHUB_OUTPUT"
+            RAW="${{ github.event.release.tag_name }}"
+            FULL="$(echo "$RAW" | sed 's/^v//')"          # strip leading v
+            MINOR="$(echo "$FULL" | cut -d. -f1-2)"       # e.g. 1.0
+            echo "full=$FULL"   >> "$GITHUB_OUTPUT"
+            echo "minor=$MINOR" >> "$GITHUB_OUTPUT"
           else
-            echo "tag=$(date -u +'%Y.%m.%d')" >> "$GITHUB_OUTPUT"
+            echo "full=dev"   >> "$GITHUB_OUTPUT"
+            echo "minor=dev"  >> "$GITHUB_OUTPUT"
           fi
 
       # ── 3. Set up QEMU (for multi-arch builds) ────────────────────────────
       # Builds linux/amd64 and linux/arm64 in one shot.
-      # Remove the platforms line in the build step if you only need amd64.
+      # Drop arm64 from the platforms line if you only need x86.
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -68,11 +72,15 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.IMAGE }}
-          # We manage tags ourselves (step 7), but metadata-action still
-          # produces useful OCI labels (source URL, revision, created date).
+          # Tags pushed for every release:
+          #   1.0.0   – exact version (immutable)
+          #   1.0     – floating minor  (moves on every patch)
+          #   latest  – always the newest stable release
+          #   sha-…   – short commit hash for traceability
           tags: |
+            type=raw,value=${{ steps.semver.outputs.full }}
+            type=raw,value=${{ steps.semver.outputs.minor }}
             type=raw,value=latest
-            type=raw,value=${{ steps.calver.outputs.tag }}
             type=sha,prefix=sha-,format=short
 
       # ── 7. Build and push ─────────────────────────────────────────────────
@@ -82,7 +90,6 @@ jobs:
           context: .
           push: true
           # linux/arm64 covers Raspberry Pi 4/5 and Apple Silicon (via Rosetta).
-          # Drop arm64 if your host is always x86.
           platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -97,6 +104,7 @@ jobs:
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "| Tag | Value |" >> "$GITHUB_STEP_SUMMARY"
           echo "|-----|-------|" >> "$GITHUB_STEP_SUMMARY"
-          echo "| CalVer | \`${{ steps.calver.outputs.tag }}\` |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| latest | \`${{ env.IMAGE }}:latest\` |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| SHA | \`${{ env.IMAGE }}:sha-$(git rev-parse --short HEAD)\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| exact   | \`${{ env.IMAGE }}:${{ steps.semver.outputs.full }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| minor   | \`${{ env.IMAGE }}:${{ steps.semver.outputs.minor }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| latest  | \`${{ env.IMAGE }}:latest\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| sha     | \`${{ env.IMAGE }}:sha-$(git rev-parse --short HEAD)\` |" >> "$GITHUB_STEP_SUMMARY"
