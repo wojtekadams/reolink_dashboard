@@ -3,7 +3,7 @@
 A self-hosted web dashboard for Reolink battery cameras connected to a hub or NVR.  
 The backend logs into the hub API, caches a session token, and polls every channel's battery state on a configurable interval. The UI renders a live tile matrix; clicking any tile opens a detail panel with stats, a live FLV stream, and a historical battery chart.
 
-![Dashboard preview](preview.html)
+![Demo Dashboard](https://wojtekadams.github.io/reolink_dashboard/)
 
 ## Features
 
@@ -41,7 +41,6 @@ docker compose up -d --build
 ```
 
 Dashboard → http://localhost:8112  
-Demo without a hub → open `https://wojtekadams.github.io/reolink_dashboard/` in your browser.
 
 ## Configuration
 
