@@ -91,7 +91,7 @@ body {
 main { padding: 30px; }
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(480px, 100%), 1fr));
   gap: 26px;
   max-width: 1340px; margin: 0 auto;
 }
@@ -198,6 +198,7 @@ main { padding: 30px; }
 .state-tag.offline { background: rgba(225,29,72,.1);   color: var(--offline); border-color: rgba(225,29,72,.28); }
 
 .modal-body { display: grid; grid-template-columns: 330px 1fr; gap: 26px; }
+@media (max-width: 900px){ .modal-body { grid-template-columns: 1fr; } }
 @media (max-width: 720px){ .modal-body { grid-template-columns: 1fr; } }
 
 .snap-wrap {
@@ -294,3 +295,57 @@ main { padding: 30px; }
 
 /* znacznik nieaktualnego (przeniesionego) odczytu baterii */
 .stale { color: var(--text-dim); font-size: 12px; }
+
+/* ---------- responsive / mobile ---------- */
+@media (max-width: 600px) {
+  /* topbar */
+  .topbar { padding: 12px 16px; }
+  .topbar h1 { font-size: 17px; }
+  .topbar h1 .thin { font-size: 12px; }
+  .meta { gap: 8px; font-size: 11px; }
+  .pill { padding: 5px 10px; }
+
+  /* main grid */
+  main { padding: 14px; }
+  .grid { gap: 16px; }
+
+  /* tiles */
+  .tile-body { padding: 14px 16px 16px; }
+  .tile-name { font-size: 17px; }
+  .batt-big { font-size: 40px; }
+  .batt-big .unit { font-size: 18px; }
+
+  /* storage section */
+  .storage { padding: 14px 16px; }
+  .disks { gap: 22px; }
+  .donut { width: 110px; height: 110px; }
+  .disk-info b { font-size: 16px; }
+
+  /* modal */
+  .modal { padding: 0; align-items: flex-end; }
+  .modal-card {
+    width: 100%; max-height: 95vh;
+    border-radius: 24px 24px 0 0;
+    padding: 20px 18px 28px;
+  }
+  .modal-head h2 { font-size: 20px; }
+
+  /* chart */
+  .chart-wrap { height: 220px; }
+  .chart-head { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .range-buttons button { padding: 5px 9px; font-size: 11px; }
+
+  /* stats grid — single column on very small screens */
+  .stats { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat { padding: 10px 11px; }
+  .stat b { font-size: 16px; }
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+  main { padding: 20px; }
+  .grid { gap: 18px; }
+  .topbar { padding: 14px 22px; }
+  .chart-wrap { height: 270px; }
+  .modal-card { padding: 22px 24px; }
+  .batt-big { font-size: 48px; }
+}
